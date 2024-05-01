@@ -1,6 +1,6 @@
 #include <WiFi.h>
-const char *ssid = "Raptor95";
-const char *password = "12345@admin!";
+const char *ssid = "";
+const char *password = "";
 void connectToWiFi()
 {
   WiFi.begin(ssid, password);
@@ -75,10 +75,10 @@ void startWebSerial()
 }
 
 #include <PubSubClient.h>
-const char *mqtt_server = "dino-pi5";
+const char *mqtt_server = "";
 int mqtt_port = 1883;
-const char *mqtt_username = "hass";
-const char *mqtt_password = "12345@admin";
+const char *mqtt_username = "";
+const char *mqtt_password = "";
 bool mqtt_bypass_diff = true;
 PubSubClient mqttClient(espClient);
 void mqtt_reconnect()
