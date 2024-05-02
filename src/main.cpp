@@ -1,6 +1,6 @@
 #include <WiFi.h>
-const char *ssid = "";
-const char *password = "";
+const char *ssid = "Raptor95";
+const char *password = "12345@admin!";
 void connectToWiFi()
 {
   WiFi.begin(ssid, password);
@@ -47,41 +47,11 @@ void startOTA()
   server.begin();
 }
 
-#include <AsyncTCP.h>
-#include <ESPAsyncWebServer.h>
-#include <WebSerial.h>
-AsyncWebServer server1(81);
-void recvMsg(uint8_t *data, size_t len)
-{
-  WebSerial.println("Received Data...");
-  String d = "";
-  for (int i = 0; i < len; i++)
-  {
-    d += char(data[i]);
-  }
-
-  if (d == "reboot")
-  {
-    WebSerial.println("Rebooting...");
-    ESP.restart();
-  }
-  WebSerial.println(d);
-}
-void startWebSerial()
-{
-  /* WEBSERIAL */
-  WebSerial.begin(&server1);
-  WebSerial.msgCallback(recvMsg);
-  server1.begin();
-}
-
-#include <SoftwareSerial.h>
-SoftwareSerial mySerial(17, 16); // RX on pin 17, TX on pin 16
 #include <PubSubClient.h>
-const char *mqtt_server = "";
+const char *mqtt_server = "dino-pi5";
 int mqtt_port = 1883;
-const char *mqtt_username = "";
-const char *mqtt_password = "";
+const char *mqtt_username = "hass";
+const char *mqtt_password = "12345@admin";
 bool mqtt_bypass_diff = true;
 PubSubClient mqttClient(espClient);
 void mqtt_reconnect()
@@ -89,19 +59,19 @@ void mqtt_reconnect()
   // Loop until we're reconnected
   while (!mqttClient.connected())
   {
-    WebSerial.print("Attempting MQTT connection...");
+    Serial.print("Attempting MQTT connection...");
     // Attempt to connect
     if (mqttClient.connect("LOLIN32_1", mqtt_username, mqtt_password))
     {
-      WebSerial.println("connected");
+      Serial.println("connected");
       // Once connected, publish an announcement...
       // ... and resubscribe
     }
     else
     {
-      WebSerial.print("failed, rc=");
-      WebSerial.print(mqttClient.state());
-      WebSerial.println(" try again in 5 seconds");
+      Serial.print("failed, rc=");
+      Serial.print(mqttClient.state());
+      Serial.println(" try again in 5 seconds");
       // Wait 5 seconds before retrying
       delay(5000);
     }
@@ -112,29 +82,51 @@ void startMQTT()
   mqttClient.setServer(mqtt_server, mqtt_port);
 }
 
-#include "dht11.h"
-#define DHTPIN 32
-dht11 dht;
-float t_old, h_old;
-void dht11_readings()
+#include <TinyGPSPlus.h>
+TinyGPSPlus gps;
+void displayInfo()
 {
-  dht.read(DHTPIN);
-  float h = dht.humidity;
-  float t = dht.temperature;
-
-  if (isnan(h) || isnan(t))
+  Serial.print(F("Location: "));
+  if (gps.location.isValid())
   {
-    WebSerial.println(F("Failed to read from DHT sensor!"));
-    return;
+    Serial.print("Lat: ");
+    Serial.print(gps.location.lat(), 6);
+    Serial.print(",");
+    Serial.print("Lng: ");
+    Serial.print(gps.location.lng(), 6);
+    Serial.println();
   }
-
-  WebSerial.print(F("Humidity: "));
-  WebSerial.print(h);
-  WebSerial.print(F("%  Temperature: "));
-  WebSerial.print(t);
-  WebSerial.println(F("°C "));
+  else
+  {
+    Serial.println("INVALID");
+  }
 }
+void displayInfo1()
+{
+  if (!mqttClient.connected())
+  {
+    mqtt_reconnect();
+  }
+  // Serial.print(F("Location: "));
+  if (gps.location.isValid())
+  {
+    mqttClient.publish("/LOLIN32/1/lat", String(gps.location.lat(), 6).c_str());
+    mqttClient.publish("/LOLIN32/1/lng", String(gps.location.lng(), 6).c_str());
+  }
+  else
+  {
+    mqttClient.publish("/LOLIN32/1/gps", "INVALID");
+  }
+}
+void updateSerial()
+{
+  delay(500);
+  while (Serial.available())
+    Serial2.write(Serial.read()); // Forward what Serial received to Software Serial Port
 
+  while (Serial2.available())
+    Serial.write(Serial2.read()); // Forward what Software Serial received to Serial Port
+}
 
 void setup()
 {
