@@ -15,6 +15,7 @@ void connectToWiFi()
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
   WiFi.setHostname("wemos_1");
+  WiFi.setTxPower(WIFI_POWER_5dBm);
   Serial.print("TX power: ");
   Serial.println(WiFi.getTxPower());
 
@@ -74,6 +75,14 @@ void startWebSerial()
   server1.begin();
 }
 
+#include "BH1750.h"
+#include "Wire.h"
+BH1750 bh1750_a;
+int error_counter_1_a = 0;
+int error_counter_2_a = 0;
+
+#include <SoftwareSerial.h>
+SoftwareSerial mySerial(17, 16); // RX on pin 17, TX on pin 16
 #include <PubSubClient.h>
 const char *mqtt_server = "";
 int mqtt_port = 1883;
@@ -136,13 +145,16 @@ void dht11_readings()
 void setup()
 {
   Serial.begin(115200);
+  Wire.begin(21, 22);
+  bh1750_a.begin(BH1750::CONTINUOUS_HIGH_RES_MODE, 0x23, &Wire);
+
+  mySerial.begin(9600);
 
   connectToWiFi();
   startOTA();
   startWebSerial();
   delay(3000);
   WebSerial.println("Connected");
-  startMQTT();
 
   pinMode(5, OUTPUT);
   analogWrite(5, 250);
@@ -154,28 +166,24 @@ void loop()
 {
   server.handleClient();
   ElegantOTA.loop();
+  WebSerial.println("Here!");
 
-  // dht11_readings();
+  float light_level_a;
+  if (bh1750_a.measurementReady())
+  {
+    light_level_a = bh1750_a.readLightLevel();
+    WebSerial.printf("A: %.0f lux\n", light_level_a);
+  }
 
-  if (!mqttClient.connected())
+  if (mySerial.available())
   {
-    mqtt_reconnect();
-  }
-  else
-  {
-    dht.read(DHTPIN);
-    if (dht.humidity != h_old || mqtt_bypass_diff)
+    while (char receivedChar = mySerial.read())
     {
-      mqttClient.publish("/LOLIN32/1/humidity", String(dht.humidity).c_str());
-      h_old = dht.humidity;
+      Serial.print(receivedChar);
     }
-    if (dht.temperature != t_old || mqtt_bypass_diff)
-    {
-      mqttClient.publish("/LOLIN32/1/temperature", String(dht.temperature).c_str());
-      t_old = dht.temperature;
-    }
+    
   }
-  mqttClient.loop();
+
 
   delay(2000);
 }
