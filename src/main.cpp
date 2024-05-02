@@ -143,6 +143,7 @@ void setup()
 
   connectToWiFi();
   startOTA();
+  startMQTT();
   
   pinMode(5, OUTPUT);
   analogWrite(5, 250);
@@ -158,6 +159,7 @@ void loop()
     if (gps.encode(Serial2.read()))
     {
       displayInfo();
+      displayInfo1();
     }
 
   if (millis() > 5000 && gps.charsProcessed() < 10)
@@ -167,11 +169,7 @@ void loop()
       delay(1);
   }
 
-  // while (Serial2.available())
-  // {
-  //   char i = (char)Serial2.read();
-  //   Serial.print(i);
-  // }
+  mqttClient.loop();
 
-  // delay(2000);
+  delay(2000);
 }
