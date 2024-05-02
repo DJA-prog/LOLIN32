@@ -143,10 +143,7 @@ void setup()
 
   connectToWiFi();
   startOTA();
-  // startWebSerial();
-  delay(3000);
-  WebSerial.println("Connected");
-
+  
   pinMode(5, OUTPUT);
   analogWrite(5, 250);
 }
@@ -161,7 +158,6 @@ void loop()
     if (gps.encode(Serial2.read()))
     {
       displayInfo();
-      displayInfo2();
     }
 
   if (millis() > 5000 && gps.charsProcessed() < 10)
@@ -170,8 +166,6 @@ void loop()
     while (true)
       delay(1);
   }
-
-  // WebSerial.println("Here!");
 
   // while (Serial2.available())
   // {
