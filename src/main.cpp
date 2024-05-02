@@ -139,18 +139,16 @@ void dht11_readings()
 void setup()
 {
   Serial.begin(115200);
-
-  mySerial.begin(9600);
+  Serial2.begin(9600);
 
   connectToWiFi();
   startOTA();
-  startWebSerial();
+  // startWebSerial();
   delay(3000);
   WebSerial.println("Connected");
 
   pinMode(5, OUTPUT);
   analogWrite(5, 250);
-
 }
 
 
@@ -158,14 +156,28 @@ void loop()
 {
   server.handleClient();
   ElegantOTA.loop();
-  // WebSerial.println("Here!");
 
-  while (mySerial.available())
+  while (Serial2.available() > 0)
+    if (gps.encode(Serial2.read()))
+    {
+      displayInfo();
+      displayInfo2();
+    }
+
+  if (millis() > 5000 && gps.charsProcessed() < 10)
   {
-    char i = (char)mySerial.read();
-    Serial.print(i);
-    WebSerial.print(i);
+    Serial.println(F("No GPS detected: check wiring."));
+    while (true)
+      delay(1);
   }
 
-  delay(10);
+  // WebSerial.println("Here!");
+
+  // while (Serial2.available())
+  // {
+  //   char i = (char)Serial2.read();
+  //   Serial.print(i);
+  // }
+
+  // delay(2000);
 }
