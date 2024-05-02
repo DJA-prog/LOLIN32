@@ -75,12 +75,6 @@ void startWebSerial()
   server1.begin();
 }
 
-#include "BH1750.h"
-#include "Wire.h"
-BH1750 bh1750_a;
-int error_counter_1_a = 0;
-int error_counter_2_a = 0;
-
 #include <SoftwareSerial.h>
 SoftwareSerial mySerial(17, 16); // RX on pin 17, TX on pin 16
 #include <PubSubClient.h>
@@ -145,8 +139,6 @@ void dht11_readings()
 void setup()
 {
   Serial.begin(115200);
-  Wire.begin(21, 22);
-  bh1750_a.begin(BH1750::CONTINUOUS_HIGH_RES_MODE, 0x23, &Wire);
 
   mySerial.begin(9600);
 
@@ -166,24 +158,14 @@ void loop()
 {
   server.handleClient();
   ElegantOTA.loop();
-  WebSerial.println("Here!");
+  // WebSerial.println("Here!");
 
-  float light_level_a;
-  if (bh1750_a.measurementReady())
+  while (mySerial.available())
   {
-    light_level_a = bh1750_a.readLightLevel();
-    WebSerial.printf("A: %.0f lux\n", light_level_a);
+    char i = (char)mySerial.read();
+    Serial.print(i);
+    WebSerial.print(i);
   }
 
-  if (mySerial.available())
-  {
-    while (char receivedChar = mySerial.read())
-    {
-      Serial.print(receivedChar);
-    }
-    
-  }
-
-
-  delay(2000);
+  delay(10);
 }
