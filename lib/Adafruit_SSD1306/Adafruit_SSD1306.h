@@ -1,26 +1,3 @@
-/*!
- * @file Adafruit_SSD1306.h
- *
- * This is part of for Adafruit's SSD1306 library for monochrome
- * OLED displays: http://www.adafruit.com/category/63_98
- *
- * These displays use I2C or SPI to communicate. I2C requires 2 pins
- * (SCL+SDA) and optionally a RESET pin. SPI requires 4 pins (MOSI, SCK,
- * select, data/command) and optionally a reset pin. Hardware SPI or
- * 'bitbang' software SPI are both supported.
- *
- * Adafruit invests time and resources providing this open source code,
- * please support Adafruit and open-source hardware by purchasing
- * products from Adafruit!
- *
- * Written by Limor Fried/Ladyada for Adafruit Industries, with
- * contributions from the open source community.
- *
- * BSD license, all text above, and the splash screen header file,
- * must be included in any redistribution.
- *
- */
-
 #ifndef _Adafruit_SSD1306_H_
 #define _Adafruit_SSD1306_H_
 
@@ -32,12 +9,9 @@
 // (NEW CODE SHOULD IGNORE THIS, USE THE CONSTRUCTORS THAT ACCEPT WIDTH
 // AND HEIGHT ARGUMENTS).
 
-#if defined(ARDUINO_STM32_FEATHER)
-typedef class HardwareSPI SPIClass;
-#endif
 
 #include <Adafruit_GFX.h>
-#include <SPI.h>
+// #include <SPI.h>
 #include <Wire.h>
 
 #if defined(__AVR__)
@@ -129,16 +103,16 @@ public:
   Adafruit_SSD1306(uint8_t w, uint8_t h, TwoWire *twi = &Wire,
                    int8_t rst_pin = -1, uint32_t clkDuring = 400000UL,
                    uint32_t clkAfter = 100000UL);
-  Adafruit_SSD1306(uint8_t w, uint8_t h, int8_t mosi_pin, int8_t sclk_pin,
-                   int8_t dc_pin, int8_t rst_pin, int8_t cs_pin);
-  Adafruit_SSD1306(uint8_t w, uint8_t h, SPIClass *spi, int8_t dc_pin,
-                   int8_t rst_pin, int8_t cs_pin, uint32_t bitrate = 8000000UL);
+  // Adafruit_SSD1306(uint8_t w, uint8_t h, int8_t mosi_pin, int8_t sclk_pin,
+  //                  int8_t dc_pin, int8_t rst_pin, int8_t cs_pin);
+  // Adafruit_SSD1306(uint8_t w, uint8_t h, SPIClass *spi, int8_t dc_pin,
+  //                  int8_t rst_pin, int8_t cs_pin, uint32_t bitrate = 8000000UL);
 
   // DEPRECATED CONSTRUCTORS - for back compatibility, avoid in new projects
-  Adafruit_SSD1306(int8_t mosi_pin, int8_t sclk_pin, int8_t dc_pin,
-                   int8_t rst_pin, int8_t cs_pin);
-  Adafruit_SSD1306(int8_t dc_pin, int8_t rst_pin, int8_t cs_pin);
-  Adafruit_SSD1306(int8_t rst_pin = -1);
+  // Adafruit_SSD1306(int8_t mosi_pin, int8_t sclk_pin, int8_t dc_pin,
+  //                  int8_t rst_pin, int8_t cs_pin);
+  // Adafruit_SSD1306(int8_t dc_pin, int8_t rst_pin, int8_t cs_pin);
+  // Adafruit_SSD1306(int8_t rst_pin = -1);
 
   ~Adafruit_SSD1306(void);
 
@@ -161,13 +135,13 @@ public:
   uint8_t *getBuffer(void);
 
 protected:
-  inline void SPIwrite(uint8_t d) __attribute__((always_inline));
+  // inline void SPIwrite(uint8_t d) __attribute__((always_inline));
   void drawFastHLineInternal(int16_t x, int16_t y, int16_t w, uint16_t color);
   void drawFastVLineInternal(int16_t x, int16_t y, int16_t h, uint16_t color);
   void ssd1306_command1(uint8_t c);
   void ssd1306_commandList(const uint8_t *c, uint8_t n);
 
-  SPIClass *spi;   ///< Initialized during construction when using SPI. See
+  // SPIClass *spi;   ///< Initialized during construction when using SPI. See
                    ///< SPI.cpp, SPI.h
   TwoWire *wire;   ///< Initialized during construction when using I2C. See
                    ///< Wire.cpp, Wire.h
@@ -193,11 +167,11 @@ protected:
   uint32_t restoreClk; ///< Wire speed following SSD1306 transfers
 #endif
   uint8_t contrast; ///< normal contrast setting for this device
-#if defined(SPI_HAS_TRANSACTION)
-protected:
-  // Allow sub-class to change
-  SPISettings spiSettings;
-#endif
+// #if defined(SPI_HAS_TRANSACTION)
+// protected:
+//   // Allow sub-class to change
+//   SPISettings spiSettings;
+// #endif
 };
 
 #endif // _Adafruit_SSD1306_H_
