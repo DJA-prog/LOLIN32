@@ -1,6 +1,7 @@
 #include <WiFi.h>
-const char *ssid = "Raptor95";
-const char *password = "12345@admin!";
+const char *ssid = "LabPi0";
+const char *password = "12345@admin";
+
 void connectToWiFi()
 {
   WiFi.begin(ssid, password);
@@ -32,50 +33,12 @@ void connectToWiFi()
 }
 
 #include <WiFiClient.h>
-#include <WebServer.h>
+// #include <WebServer.h>
 
-#include <ElegantOTA.h>
-WebServer server(80);
 WiFiClient espClient;
-void startOTA()
-{
-  /* OTA */
-  server.on("/", []()
-            { server.send(200, "text/plain", "Hi! This is ElegantOTA Demo."); });
-  ElegantOTA.begin(&server); // Start ElegantOTA
-  server.begin();
-}
-
-#include <AsyncTCP.h>
-#include <ESPAsyncWebServer.h>
-#include <WebSerial.h>
-AsyncWebServer server1(81);
-void recvMsg(uint8_t *data, size_t len)
-{
-  WebSerial.println("Received Data...");
-  String d = "";
-  for (int i = 0; i < len; i++)
-  {
-    d += char(data[i]);
-  }
-
-  if (d == "reboot")
-  {
-    WebSerial.println("Rebooting...");
-    ESP.restart();
-  }
-  WebSerial.println(d);
-}
-void startWebSerial()
-{
-  /* WEBSERIAL */
-  WebSerial.begin(&server1);
-  WebSerial.msgCallback(recvMsg);
-  server1.begin();
-}
 
 #include <PubSubClient.h>
-const char *mqtt_server = "dino-pi5";
+const char *mqtt_server = "192.168.2.2";
 int mqtt_port = 1883;
 const char *mqtt_username = "hass";
 const char *mqtt_password = "12345@admin";
@@ -86,19 +49,19 @@ void mqtt_reconnect()
   // Loop until we're reconnected
   while (!mqttClient.connected())
   {
-    WebSerial.print("Attempting MQTT connection...");
+    Serial.print("Attempting MQTT connection...");
     // Attempt to connect
     if (mqttClient.connect("LOLIN32_1", mqtt_username, mqtt_password))
     {
-      WebSerial.println("connected");
+      Serial.println("connected");
       // Once connected, publish an announcement...
       // ... and resubscribe
     }
     else
     {
-      WebSerial.print("failed, rc=");
-      WebSerial.print(mqttClient.state());
-      WebSerial.println(" try again in 5 seconds");
+      Serial.print("failed, rc=");
+      Serial.print(mqttClient.state());
+      Serial.println(" try again in 5 seconds");
       // Wait 5 seconds before retrying
       delay(5000);
     }
@@ -121,15 +84,15 @@ void dht11_readings()
 
   if (isnan(h) || isnan(t))
   {
-    WebSerial.println(F("Failed to read from DHT sensor!"));
+    Serial.println(F("Failed to read from DHT sensor!"));
     return;
   }
 
-  WebSerial.print(F("Humidity: "));
-  WebSerial.print(h);
-  WebSerial.print(F("%  Temperature: "));
-  WebSerial.print(t);
-  WebSerial.println(F("°C "));
+  Serial.print(F("Humidity: "));
+  Serial.print(h);
+  Serial.print(F("%  Temperature: "));
+  Serial.print(t);
+  Serial.println(F("°C "));
 }
 
 
@@ -138,10 +101,6 @@ void setup()
   Serial.begin(115200);
 
   connectToWiFi();
-  startOTA();
-  startWebSerial();
-  delay(3000);
-  WebSerial.println("Connected");
   startMQTT();
 
   pinMode(5, OUTPUT);
@@ -152,11 +111,6 @@ void setup()
 
 void loop()
 {
-  server.handleClient();
-  ElegantOTA.loop();
-
-  // dht11_readings();
-
   if (!mqttClient.connected())
   {
     mqtt_reconnect();
